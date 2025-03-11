@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import argparse
 import ast
 import base64
 import ffmpy
@@ -17,24 +16,34 @@ from m3u8.model import SegmentList, Segment, find_key
 from bs4 import BeautifulSoup
 
 
+GET_COLUMN_ITEMS_URL = "https://app5bsvjqkl5234.h5.xiaoeknow.com/xe.course.business.column.items.get/2.0.0"
+GET_VIDEO_DETAILS_INFO_URL = "https://app5bsvjqkl5234.h5.xiaoeknow.com/xe.course.business.video.detail_info.get/2.0.0"
+
+
 class Xet(object):
-    def __init__(self, appid, re_login=False):
-        self.appid = appid
-        self.configs = self.config('r') or {}
-        self.session = self.login(re_login)
+    def __init__(self, conf=None):
+        if conf:
+            self.config = conf
+        else:
+            current_dir = os.getcwd()
+            config_path = os.path.join(current_dir, 'config.json')
+            self.config = self.load_config(config_path)
+        self.appid = self.config['appid']
+        self.cookie = self.config['cookie']
+        self.product_id = self.config['product_id']
         self.download_dir = 'download'
 
-    def config(self, mode):
+    def load_config(self, config_path):
         try:
-            if mode == 'r':
-                with open("config.json", "r") as config_file:
-                    return json.load(config_file)
-            elif mode == 'w':
-                with open("config.json", "w") as config_file:
-                    json.dump(self.configs, config_file)
-                    return True
-        except:
-            return
+            with open(config_path, 'r', encoding='utf-8') as file:
+                config_data = json.load(file)
+            return config_data
+        except FileNotFoundError:
+            print(f"错误: 文件 {config_path} 不存在")
+        except json.JSONDecodeError:
+            print("错误: 文件内容不是有效的 JSON 格式")
+        except Exception as e:
+            print(f"读取文件时发生错误: {e}")
 
     def openfile(self, filepath):
         if sys.platform.startswith('win'):
@@ -245,47 +254,40 @@ class Xet(object):
                 print('Not Found. resourceid: {}'.format(resource['id']))
         return
 
+    def get_video_detail_info(self, v_resource_id):
+        payload = {
+            'bizData[resource_id]': v_resource_id,
+            'bizData[product_id]': self.product_id,
+            'bizData[opr_sys]': 'MacIntel'
+        }
+        headers = {
+            'cookie': self.cookie,
+        }
+        response = requests.request("POST", GET_VIDEO_DETAILS_INFO_URL, headers=headers, data=payload)
+        data = json.loads(response.text).get('data').get('video_info')
+        print(data)
+        return response.text
 
-def parse_args():
-    parser = argparse.ArgumentParser(description='''Download tools for Xiaoe-tech''')
-    parser.add_argument("appid", type=str, help='''Shop ID of xiaoe-tech.''')
-    parser.add_argument("-d", type=str, metavar='ID', help='''Download resources by Resource ID or Product ID.''')
-    parser.add_argument("-rl", type=str, metavar='Product ID', help='''Display All resources of the Product ID''')
-    parser.add_argument("-pl", action='store_true', help='''Display All products of the Shop''')
-    parser.add_argument("-r2p", type=str, metavar='Resource ID', help='''Get Product ID from Resource ID''')
-    parser.add_argument("-tc", type=str, metavar='Resource ID', help='''Combine and transcode the video''')
-    parser.add_argument("--nocache", action='store_true', help='''Download without cache''')
-    parser.add_argument("--login", action='store_true', help='''Force to re-login''')
-    return parser.parse_args()
+    def get_column_items(self, column_id, page_index=1, page_size=100, sort='desc'):
+        payload = {
+            'bizData[column_id]': column_id,
+            'bizData[page_index]': str(page_index),
+            'bizData[page_size]': str(page_size),
+            'bizData[sort]': sort
+        }
+        files = []
+        headers = {
+            'cookie': self.cookie,
+        }
+        response = requests.request("POST", GET_COLUMN_ITEMS_URL, headers=headers, data=payload, files=files)
+        data = json.loads(response.text).get('data')
+        return [(i.get('resource_id'), i.get('resource_title')) for i in data.get('list')]
 
 
-def main1():
-    args = parse_args()
-    xet = Xet(args.appid, args.login)
-    if args.d:
-        xet.download(args.d, args.nocache)
-    if args.rl:
-        xet.get_resource_list(args.rl)
-    if args.pl:
-        xet.get_product_list()
-    if args.r2p:
-        xet.get_productid(args.r2p)
-    if args.tc:
-        xet.transcode(args.tc)
-
-
-def load_config():
-    # 获取当前目录
-    current_dir = os.getcwd()
-
-    # 拼接 config.json 文件的完整路径
-    config_path = os.path.join(current_dir, 'config.json')
-
-    # 读取 config.json 文件
+def load_config(config_path):
     try:
         with open(config_path, 'r', encoding='utf-8') as file:
             config_data = json.load(file)
-        print("配置文件内容:", config_data)
         return config_data
     except FileNotFoundError:
         print(f"错误: 文件 {config_path} 不存在")
@@ -296,10 +298,18 @@ def load_config():
 
 
 def main():
-    conf = load_config()
-    print(conf)
+    current_dir = os.getcwd()
+    config_path = os.path.join(current_dir, 'config.json')
+    conf = load_config(config_path)
 
-    pass
+    xet = Xet(conf)
+    column_id = conf["product_id"]  # 课程id
+    v_resource_ids = xet.get_column_items(column_id)
+    for v_resource_id, resource_title in v_resource_ids:
+        print(resource_title, v_resource_id)
+        video_details_info = xet.get_video_detail_info(v_resource_id)
+        print(video_details_info)
+        break
 
 
 if __name__ == '__main__':
