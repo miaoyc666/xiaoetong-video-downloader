@@ -16,8 +16,10 @@ from m3u8.model import SegmentList, Segment, find_key
 from bs4 import BeautifulSoup
 
 
-GET_COLUMN_ITEMS_URL = "https://app5bsvjqkl5234.h5.xiaoeknow.com/xe.course.business.column.items.get/2.0.0"
-GET_VIDEO_DETAILS_INFO_URL = "https://app5bsvjqkl5234.h5.xiaoeknow.com/xe.course.business.video.detail_info.get/2.0.0"
+GET_COLUMN_ITEMS_URL = "https://{0}.h5.xiaoeknow.com/xe.course.business.column.items.get/2.0.0"
+GET_VIDEO_DETAILS_INFO_URL = "https://{0}.h5.xiaoeknow.com/xe.course.business.video.detail_info.get/2.0.0"
+GET_MICRO_NAVIGATION_URL = "https://{0}.h5.xiaoeknow.com/xe.micro_page.navigation.get/1.0.0"
+GET_PLAY_URL = "https://{0}.h5.xiaoeknow.com/xe.material-center.play/getPlayUrl"
 
 
 class Xet(object):
@@ -28,7 +30,7 @@ class Xet(object):
             current_dir = os.getcwd()
             config_path = os.path.join(current_dir, 'config.json')
             self.config = self.load_config(config_path)
-        self.appid = self.config['appid']
+        self.appid = self.config['app_id']
         self.cookie = self.config['cookie']
         self.product_id = self.config['product_id']
         self.download_dir = 'download'
@@ -50,45 +52,6 @@ class Xet(object):
             return subprocess.run(['call', filepath], shell=True)
         else:
             return subprocess.run(['open', filepath])
-            
-    def login(self, re_login=False):
-        session = requests.Session()
-        if not re_login and self.configs.get('last_appid') == self.appid and (time.time() - self.configs.get('cookies_time')) < 14400: # 4小时
-            for key, value in self.configs['cookies'].items():
-                session.cookies[key] = value
-        else:
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 6_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36',
-                'Referer': '',
-                'Origin': 'https://pc-shop.xiaoe-tech.com',
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-            html = session.get('https://pc-shop.xiaoe-tech.com/{appid}/login'.format(appid=self.appid), headers=headers).text
-            soup = BeautifulSoup(html, 'lxml')
-            initdata = json.loads(soup.find(name='input', id='initData')['value'])
-            with open('qrcode.png', 'wb') as file:
-                file.write(base64.b64decode(initdata['qrcodeImg']))
-            self.openfile('qrcode.png')
-            # Wait for QRcode to be scanned
-            islogin = False
-            for _ in range(300):
-                res = json.loads(session.post('https://pc-shop.xiaoe-tech.com/{appid}/checkIfUserHasLogin'.format(appid=self.appid), data={'code': initdata['code']}).text)
-                if not res['code'] and res['data']['code'] == 1:
-                    islogin = True
-                    break
-                else:
-                    time.sleep(1)
-            if islogin:
-                os.remove('qrcode.png')
-                session.get('https://pc-shop.xiaoe-tech.com/{appid}/pcLogin/0?code={code}'.format(appid=self.appid, code=initdata['code']))
-                self.configs['last_appid'] = self.appid
-                self.configs['cookies_time'] = time.time()
-                self.configs['cookies'] = requests.utils.dict_from_cookiejar(session.cookies)
-                self.config('w')
-            else:
-                print('Log in timeout')
-                exit(1)
-        return session
 
     def get_product_list(self):
         url = 'https://pc-shop.xiaoe-tech.com/{appid}/open/column.all.get/2.0'.format(appid=self.appid)
@@ -254,7 +217,7 @@ class Xet(object):
                 print('Not Found. resourceid: {}'.format(resource['id']))
         return
 
-    def get_video_detail_info(self, v_resource_id):
+    def get_video_detail_info(self, url, v_resource_id):
         payload = {
             'bizData[resource_id]': v_resource_id,
             'bizData[product_id]': self.product_id,
@@ -263,25 +226,54 @@ class Xet(object):
         headers = {
             'cookie': self.cookie,
         }
-        response = requests.request("POST", GET_VIDEO_DETAILS_INFO_URL, headers=headers, data=payload)
+        response = requests.request("POST", url, headers=headers, data=payload)
         data = json.loads(response.text).get('data').get('video_info')
-        print(data)
-        return response.text
+        return data
 
-    def get_column_items(self, column_id, page_index=1, page_size=100, sort='desc'):
+    def get_column_items(self, url, column_id, page_index=1, page_size=100, sort='desc'):
         payload = {
             'bizData[column_id]': column_id,
             'bizData[page_index]': str(page_index),
             'bizData[page_size]': str(page_size),
             'bizData[sort]': sort
         }
-        files = []
         headers = {
             'cookie': self.cookie,
         }
-        response = requests.request("POST", GET_COLUMN_ITEMS_URL, headers=headers, data=payload, files=files)
+        response = requests.request("POST", url, headers=headers, data=payload)
         data = json.loads(response.text).get('data')
         return [(i.get('resource_id'), i.get('resource_title')) for i in data.get('list')]
+
+    def get_mico_navigation_info(self, url, app_id):
+        payload = json.dumps({
+            "app_id": app_id,
+            "agent_type": 1,
+            "app_version": 0
+        })
+        headers = {
+            'cookie': self.cookie,
+        }
+        response = requests.request("POST", url, headers=headers, data=payload)
+        data = json.loads(response.text).get('data', {})
+        return data
+
+    def get_play_url(self, url, app_id, user_id, play_sign):
+        payload = json.dumps({
+            "org_app_id": app_id,
+            "app_id": app_id,
+            "user_id": user_id,
+            "play_sign": [
+                play_sign
+            ],
+            "play_line": "A",
+            "opr_sys": "MacIntel"
+        })
+        headers = {
+            'cookie': self.cookie,
+        }
+        response = requests.request("POST", url, headers=headers, data=payload)
+        play_list_dict = json.loads(response.text).get('data', {}).get(play_sign, {}).get('play_list', {})
+        return play_list_dict
 
 
 def load_config(config_path):
@@ -298,18 +290,31 @@ def load_config(config_path):
 
 
 def main():
+    # 业务逻辑：
+    # 1. 获取配置，准备数据
+
     current_dir = os.getcwd()
     config_path = os.path.join(current_dir, 'config.json')
     conf = load_config(config_path)
 
-    xet = Xet(conf)
+    app_id = conf["app_id"]  # app_id
     column_id = conf["product_id"]  # 课程id
-    v_resource_ids = xet.get_column_items(column_id)
+
+    get_column_items_url = GET_COLUMN_ITEMS_URL.format(app_id)
+    get_video_details_info_url = GET_VIDEO_DETAILS_INFO_URL.format(app_id)
+    get_micro_navigation_url = GET_MICRO_NAVIGATION_URL.format(app_id)
+    get_play_url = GET_PLAY_URL.format(app_id)
+    #
+    xet = Xet(conf)
+    navigation_info = xet.get_mico_navigation_info(get_micro_navigation_url, app_id)
+    user_id = navigation_info['user_id']
+    v_resource_ids = xet.get_column_items(get_column_items_url, column_id)
     for v_resource_id, resource_title in v_resource_ids:
-        print(resource_title, v_resource_id)
-        video_details_info = xet.get_video_detail_info(v_resource_id)
-        print(video_details_info)
-        break
+        video_details_info = xet.get_video_detail_info(get_video_details_info_url, v_resource_id)
+        play_sign = video_details_info.get('play_sign')
+        play_list_dict = xet.get_play_url(get_play_url, app_id, user_id, play_sign)
+        play_url = play_list_dict.get('720p_hls', {}).get('play_url')
+        print(play_url)
 
 
 if __name__ == '__main__':
