@@ -55,11 +55,11 @@ ffmpeg -i https://xxx.xxx/xxxxxx/001.m3u8 /Downloads/xx.mp4
 config.json
 ```
 #### 配置项说明
-| 字段         | 说明 | 获取方式 |
-|------------|----|------|
-| cookie     |    |      |
-| app_id     |    |      |
-| product_id |    |      |
+| 字段         | 说明             | 获取方式                                                                                                                                              |
+|------------|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| cookie     | 小鹅通web端的Cookie | web端登录后浏览器检查元素即可获取到Cookie                                                                                                                         |
+| app_id     | 店铺唯一标识         | 课程链接url中获取，示例: 课程链接https://appisb9y2un7034.xet.citv.cn/p/course/column/p_608baa19e4b071a81eb6ebbc?xxxxxxx 中的appisb9y2un7034即是app_id               |
+| product_id | 课程唯一标识         | 课程链接url中获取，示例: 课程链接https://appisb9y2un7034.xet.citv.cn/p/course/column/p_608baa19e4b071a81eb6ebbc?xxxxxx 中的p_608baa19e4b071a81eb6ebbc即是product_id |
 
 #### 1. 下载单独视频/音频
 ```
