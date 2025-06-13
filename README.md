@@ -93,5 +93,5 @@ python3 xiaoet.py <店铺ID> -tc <ResourceID>
 
 ## 三、类似项目
 
-[xiaoet](https://github.com/Yxnt/xiaoet)
-[xiaoetong-video-downloader](https://github.com/jiji262/xiaoetong-video-downloader)
+- [xiaoet](https://github.com/Yxnt/xiaoet)
+- [xiaoetong-video-downloader](https://github.com/jiji262/xiaoetong-video-downloader)
