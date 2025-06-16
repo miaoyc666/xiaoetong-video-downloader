@@ -1,5 +1,6 @@
 {
   "cookie": "",
   "appid": "",
-  "product_id": ""
+  "product_id": "",
+  "download_dir": "download"
 }
