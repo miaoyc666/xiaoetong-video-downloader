@@ -1,4 +1,4 @@
-# Download Xiaoet videos/audios
+# Download Xiaoet videos
 > 小鹅通资源下载工具
 
 > 本工具仅支持用户已购买课程的下载，并不存在付费课程的破解
