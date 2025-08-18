@@ -1,96 +1,218 @@
-# Download Xiaoet videos/audios
-> 小鹅通资源下载工具
+# 小鹅通视频下载器 v2.0
+
+> 小鹅通资源下载工具 - 工程化重构版本
 
 > 本工具仅支持用户已购买课程的下载，并不存在付费课程的破解
 
 > 本工具仅供自用和学习交流使用，请勿用于商业用途
 
-> 最新更新时间：2025-3-9 
+> 最新更新时间：2025-8-8
 
-## 一、安装
+## ✨ 新版本特性
 
-#### 1. 安装python 依赖
+- 🏗️ **工程化架构**: 采用模块化设计，代码结构清晰
+- 🛡️ **健壮性增强**: 完善的错误处理和重试机制
+- 📊 **进度反馈**: 详细的下载进度和状态显示
+- 🔧 **配置管理**: 灵活的配置文件管理
+- 📝 **日志系统**: 完整的日志记录和管理
+- 🧪 **单元测试**: 包含测试用例，保证代码质量
+- 🎯 **命令行工具**: 友好的命令行界面
 
-使用如下命令安装依赖：
-```
-sudo pip3 install -r requirements.txt
-```
-或者
+## 📁 项目结构
 
 ```
-sudo pip3 install ffmpy m3u8 beautifulsoup4 lxml requests
+xiaoetong-video-downloader/
+├── src/xiaoet_downloader/         # 主要源代码
+│   ├── models/                    # 数据模型
+│   │   ├── config.py              # 配置模型
+│   │   └── video.py               # 视频模型
+│   ├── api/                       # API客户端
+│   │   └── client.py              # 小鹅通API客户端
+│   ├── core/                      # 核心功能
+│   │   ├── downloader.py          # 视频下载器
+│   │   ├── transcoder.py          # 视频转码器
+│   │   └── manager.py             # 下载管理器
+│   ├── utils/                     # 工具类
+│   │   ├── file_utils.py          # 文件工具
+│   │   └── logger.py              # 日志工具
+│   └── __init__.py                # 包初始化
+├── tests/                         # 测试文件
+├── scripts/                       # 脚本文件
+├── main.py                        # 主程序入口
+├── config.json.example            # 配置文件示例
+├── requirements.txt               # 依赖列表
+└── README.md                      # 说明文档
 ```
 
-#### 2. 安装ffmpeg
+## 🚀 快速开始
 
-在 MacOS 上可以使用`brew`来安装`ffmeg`工具。如果没有`brew`，可以通过下面命令安装：
-```
-ruby -e"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-```
+### 1. 环境准备
 
-安装`ffmeg`的命令是：
-```
-brew install ffmpeg
-```
-
-安装完成后检验是否安装正确：
-```
-brew info ffmpeg
-```
-
-本工具中用到`ffmeg`的地方是，使用它将下载下来的`m3u8`文件转换到`mp4`格式。
-其使用方式是：
-```
-ffmpeg -i 视频地址 [输出的文件名.mp4]
-```
-例如：
-```
-ffmpeg -i https://xxx.xxx/xxxxxx/001.m3u8 /Downloads/xx.mp4
-```
-这部分的转换操作已经在脚本中执行完成，因此无需手动执行上述命令。
-
-## 二、使用方法示例     
-#### 配置文件
+#### 安装Python依赖
 ```bash
-config.json
-```
-#### 配置项说明
-| 字段         | 说明             | 获取方式                                                                                                                                              |
-|------------|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| cookie     | 小鹅通web端的Cookie | web端登录后浏览器检查元素即可获取到Cookie                                                                                                                         |
-| app_id     | 店铺唯一标识         | 课程链接url中获取，示例: 课程链接https://appisb9y2un7034.xet.citv.cn/p/course/column/p_608baa19e4b071a81eb6ebbc?xxxxxxx 中的appisb9y2un7034即是app_id               |
-| product_id | 课程唯一标识         | 课程链接url中获取，示例: 课程链接https://appisb9y2un7034.xet.citv.cn/p/course/column/p_608baa19e4b071a81eb6ebbc?xxxxxx 中的p_608baa19e4b071a81eb6ebbc即是product_id |
+# 自动安装（推荐）
+python scripts/setup.py
 
-#### 1. 下载单独视频/音频
-```
-python3 xiaoet.py <店铺ID> -d <ResourceID>
-```
-#### 2. 下载一个专栏所有视频/音频
-```
-python3 xiaoet.py <店铺ID> -d <ProductID>
-```
-#### 3. 列出一个店铺所有专栏(部分商铺可能失效)
-```
-python3 xiaoet.py <店铺ID> -pl
-```
-#### 4. 列出该专栏下所有视频/音频
-```
-python3 xiaoet.py <店铺ID> -rl <ProductID>
-```
-#### 5. 列出视频/音频所在专栏ID
-```
-python3 xiaoet.py <店铺ID> -r2p <ResourceID>
-```
-#### 5. ffmpeg合成视频
-```
-python3 xiaoet.py <店铺ID> -tc <ResourceID>
+# 或手动安装
+pip install -r requirements.txt
 ```
 
-备注：
-1. 执行命令后需要微信扫码登录，session时效性为4小时，更换店铺需要重新扫码登录
-2. 默认下载目录为同级download目录下，下载完成后视频为分段，将自动合成；音频不需要合成。
-3. 店铺ID为`appxxxx`形式, 专栏ID(ProductID)为`p_xxxx_xxx`形式,资源ID(ResourceID)分为视频与音频, 分别为`v_xxx_xxx`、`a_xxx_xxx`形式，需要特别注意的是，这些`ID`**区分大小写**，因此从`URL`中复制这些信息的时候注意大小写要保留。
+#### 安装ffmpeg
+```bash
+# macOS
+brew install ffmpeg
 
-## 三、类似项目
+# Ubuntu/Debian
+sudo apt install ffmpeg
 
-[xiaoet](https://github.com/Yxnt/xiaoet)
+# Windows
+# 从 https://ffmpeg.org/download.html 下载并安装
+```
+
+### 2. 配置设置
+
+复制配置文件模板并填入你的信息：
+```bash
+cp config.json.example config.json
+```
+
+编辑 `config.json`：
+```json
+{
+  "app_id": "你的app_id",
+  "cookie": "你的cookie",
+  "product_id": "你的product_id",
+  "download_dir": "download"
+}
+```
+
+### 3. 使用方法
+
+#### 基本用法
+```bash
+# 下载整个课程
+python main.py
+
+# 下载单个视频
+python main.py --single v_123456789
+
+# 检查环境
+python main.py --check
+
+# 显示帮助
+python main.py --help
+```
+
+#### 高级选项
+```bash
+# 使用自定义配置文件
+python main.py --config my_config.json
+
+# 忽略缓存重新下载
+python main.py --no-cache
+
+# 只下载不转码
+python main.py --no-transcode
+
+# 显示详细日志
+python main.py --verbose
+```
+
+## 📋 配置说明
+
+| 字段 | 说明 | 获取方式 |
+|------|------|----------|
+| app_id | 店铺唯一标识 | 课程链接URL中获取，如 `https://appisb9y2un7034.xet.citv.cn/...` 中的 `appisb9y2un7034` |
+| cookie | 小鹅通web端的Cookie | 浏览器开发者工具中获取 |
+| product_id | 课程唯一标识 | 课程链接URL中获取，如 `https://...xet.citv.cn/p/course/column/p_608baa19e4b071a81eb6ebbc` 中的 `p_608baa19e4b071a81eb6ebbc` |
+| download_dir | 下载目录 | 可选，默认为 `download` |
+
+## 🔧 开发指南
+
+### 运行测试
+```bash
+# 运行所有测试
+python -m pytest tests/
+
+# 运行特定测试
+python -m pytest tests/test_config.py
+```
+
+### 代码结构说明
+
+- **models**: 数据模型，定义配置、视频资源等数据结构
+- **api**: API客户端，处理与小鹅通服务器的通信
+- **core**: 核心功能，包括下载器、转码器和管理器
+- **utils**: 工具类，提供文件处理、日志等通用功能
+
+### 扩展功能
+
+要添加新功能，请遵循以下模式：
+
+1. 在相应的模块中添加新类或方法
+2. 更新相关的数据模型
+3. 添加相应的测试用例
+4. 更新文档
+
+## 🐛 故障排除
+
+### 常见问题
+
+1. **ffmpeg未找到**
+   ```
+   解决方案: 确保ffmpeg已安装并在PATH中
+   ```
+
+2. **配置文件错误**
+   ```
+   解决方案: 检查config.json格式是否正确，参考config.json.example
+   ```
+
+3. **网络连接问题**
+   ```
+   解决方案: 检查网络连接，确保可以访问小鹅通服务器
+   ```
+
+4. **Cookie过期**
+   ```
+   解决方案: 重新获取Cookie并更新配置文件
+   ```
+
+### 日志查看
+
+程序运行时会在 `logs/` 目录下生成日志文件，可以查看详细的运行信息：
+
+```bash
+# 查看今天的日志
+cat logs/xiaoet_$(date +%Y%m%d).log
+
+# 实时查看日志
+tail -f logs/xiaoet_$(date +%Y%m%d).log
+```
+
+## 📄 更新日志
+
+### v2.0.0 (2025-8-8)
+- 🏗️ 完全重构，采用工程化架构
+- 🛡️ 增强错误处理和重试机制
+- 📊 添加详细的进度反馈
+- 🔧 改进配置管理
+- 📝 添加完整的日志系统
+- 🧪 添加单元测试
+- 🎯 提供友好的命令行界面
+
+### v1.0.0
+- 基础功能实现
+- 支持视频下载和转码
+
+## 📜 许可证
+
+本项目仅供学习和个人使用，请勿用于商业用途。
+
+## 🤝 贡献
+
+欢迎提交Issue和Pull Request来改进这个项目。
+
+## ⚠️ 免责声明
+
+本工具仅用于下载用户已购买的课程内容，请遵守相关法律法规和平台使用条款。
