@@ -1,22 +1,11 @@
-<<<<<<< HEAD
-# 小鹅通视频下载器 v2.0
+# 小鹅通视频下载器 
 
-> 小鹅通资源下载工具 - 工程化重构版本
-=======
 # Download Xiaoet videos
 > 小鹅通资源下载工具
->>>>>>> b7aa8bf5c1896b642b29b613cdc0bc851845932a
-
 > 本工具仅支持用户已购买课程的下载，并不存在付费课程的破解
-
 > 本工具仅供自用和学习交流使用，请勿用于商业用途
 
-<<<<<<< HEAD
-> 最新更新时间：2025-8-8
-=======
-
 ## 代码改版，近期不要使用啦   2025-6-15
->>>>>>> b7aa8bf5c1896b642b29b613cdc0bc851845932a
 
 ## ✨ 新版本特性
 
@@ -59,21 +48,11 @@ xiaoetong-video-downloader/
 ### 1. 环境准备
 
 #### 安装Python依赖
-```bash
-<<<<<<< HEAD
+
 # 自动安装（推荐）
+```bash
 python scripts/setup.py
-=======
-config.json
 ```
-#### 配置项说明
-| 字段         | 说明              | 获取方式                                                                                                                                              |
-|------------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| host       | 小鹅通web端api的host | 所见即所得，例如xet.citv.cn或h5.xiaoeknow.com                                                                                                              |
-| cookie     | 小鹅通web端的Cookie  | web端登录后浏览器检查元素即可获取到Cookie                                                                                                                         |
-| app_id     | 店铺唯一标识          | 课程链接url中获取，示例: 课程链接https://appisb9y2un7034.xet.citv.cn/p/course/column/p_608baa19e4b071a81eb6ebbc?xxxxxxx 中的appisb9y2un7034即是app_id               |
-| product_id | 课程唯一标识          | 课程链接url中获取，示例: 课程链接https://appisb9y2un7034.xet.citv.cn/p/course/column/p_608baa19e4b071a81eb6ebbc?xxxxxx 中的p_608baa19e4b071a81eb6ebbc即是product_id |
->>>>>>> b7aa8bf5c1896b642b29b613cdc0bc851845932a
 
 # 或手动安装
 pip install -r requirements.txt
@@ -87,7 +66,6 @@ brew install ffmpeg
 # Ubuntu/Debian
 sudo apt install ffmpeg
 
-<<<<<<< HEAD
 # Windows
 # 从 https://ffmpeg.org/download.html 下载并安装
 ```
@@ -108,6 +86,15 @@ cp config.json.example config.json
   "download_dir": "download"
 }
 ```
+
+#### 配置项说明
+| 字段         | 说明              | 获取方式                                                                                                                                              |
+|------------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| host       | 小鹅通web端api的host | 所见即所得，例如xet.citv.cn或h5.xiaoeknow.com                                                                                                              |
+| cookie     | 小鹅通web端的Cookie  | web端登录后浏览器检查元素即可获取到Cookie                                                                                                                         |
+| app_id     | 店铺唯一标识          | 课程链接url中获取，示例: 课程链接https://appisb9y2un7034.xet.citv.cn/p/course/column/p_608baa19e4b071a81eb6ebbc?xxxxxxx 中的appisb9y2un7034即是app_id               |
+| product_id | 课程唯一标识          | 课程链接url中获取，示例: 课程链接https://appisb9y2un7034.xet.citv.cn/p/course/column/p_608baa19e4b071a81eb6ebbc?xxxxxx 中的p_608baa19e4b071a81eb6ebbc即是product_id |
+
 
 ### 3. 使用方法
 
@@ -242,4 +229,3 @@ tail -f logs/xiaoet_$(date +%Y%m%d).log
 =======
 - [xiaoet](https://github.com/Yxnt/xiaoet)
 - [xiaoetong-video-downloader](https://github.com/jiji262/xiaoetong-video-downloader)
->>>>>>> b7aa8bf5c1896b642b29b613cdc0bc851845932a
